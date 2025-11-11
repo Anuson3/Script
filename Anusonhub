@@ -1,0 +1,12 @@
+-- Auto Jump Script (LocalScript)
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- ตั้งให้กระโดดทุก ๆ 1 วินาที
+while true do
+    wait(1) -- ปรับความถี่ได้ เช่น 0.5 จะกระโดดถี่ขึ้น
+    if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end
