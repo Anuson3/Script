@@ -1,10 +1,11 @@
 --[[
-    Anti-AFK Script with "Anuson Hub" Style GUI for Roblox (Lua) - Version 4
+    Anti-AFK Script with Image-Enhanced GUI for Roblox (Lua) - Version 5
     
     การปรับปรุง:
-    1. ออกแบบ GUI ใหม่ให้มีลักษณะคล้ายกับ "Xeter Hub" ในภาพตัวอย่าง (โทนสีเข้ม, ขอบมน)
-    2. ลบ Rainbow Border ออก และรวม Credit เข้าไปในส่วนหัว
-    3. คงฟังก์ชัน Anti-AFK และการใช้ CoreGui เพื่อป้องกัน GUI หายเมื่อตัวละครตาย
+    1. แทนที่ไอคอนหัวกะโหลกในส่วนหัวด้วย ImageLabel เพื่อแสดงรูปภาพที่ผู้ใช้ให้มา
+    2. ใช้ Placeholder สำหรับ Image ID (rbxassetid)
+    
+    *** ข้อสำคัญ: ผู้ใช้ต้องแทนที่ "rbxassetid://PLACEHOLDER_IMAGE_ID" ด้วย Asset ID จริงของรูปภาพที่อัปโหลดไปยัง Roblox ***
 ]]
 
 local Players = game:GetService("Players")
@@ -37,11 +38,11 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- **********************************************************************************
--- ส่วนของการสร้าง GUI (Xeter Hub Style)
+-- ส่วนของการสร้าง GUI (Image Enhanced)
 -- **********************************************************************************
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AntiAFK_XeterStyle_GUI"
+screenGui.Name = "AntiAFK_ImageStyle_GUI"
 screenGui.Parent = CoreGui
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Enabled = true
@@ -49,8 +50,8 @@ screenGui.Enabled = true
 -- Main Frame (กรอบหลัก)
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 220, 0, 100)
-mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0) -- จัดให้อยู่ด้านบนค่อนไปทางกลาง
-mainFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15) -- โทนสีเข้ม
+mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
@@ -58,14 +59,14 @@ mainFrame.Parent = screenGui
 
 -- Rounded Corners
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8) -- ขอบมน
+corner.CornerRadius = UDim.new(0, 8)
 corner.Parent = mainFrame
 
--- Header Frame (ส่วนหัวคล้าย Xeter Hub)
+-- Header Frame (ส่วนหัว)
 local headerFrame = Instance.new("Frame")
 headerFrame.Size = UDim2.new(1, 0, 0, 40)
 headerFrame.Position = UDim2.new(0, 0, 0, 0)
-headerFrame.BackgroundColor3 = Color3.new(0.2, 0.15, 0.15) -- สีเข้มกว่าเล็กน้อย
+headerFrame.BackgroundColor3 = Color3.new(0.2, 0.15, 0.15)
 headerFrame.BorderSizePixel = 0
 headerFrame.Parent = mainFrame
 
@@ -73,35 +74,45 @@ local headerCorner = Instance.new("UICorner")
 headerCorner.CornerRadius = UDim.new(0, 8)
 headerCorner.Parent = headerFrame
 
+-- Image Label (สำหรับรูปภาพของผู้ใช้)
+local imageLabel = Instance.new("ImageLabel")
+imageLabel.Size = UDim2.new(0, 30, 0, 30)
+imageLabel.Position = UDim2.new(0.05, 0, 0.5, -15) -- จัดให้อยู่ด้านซ้ายของ Title
+imageLabel.BackgroundColor3 = Color3.new(1, 1, 1)
+imageLabel.BackgroundTransparency = 1
+imageLabel.Image = "rbxassetid://PLACEHOLDER_IMAGE_ID" -- *** ต้องเปลี่ยนเป็น Asset ID จริง ***
+imageLabel.ScaleType = Enum.ScaleType.Fit
+imageLabel.Parent = headerFrame
+
 -- Title Label
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0.5, 0)
-titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+titleLabel.Position = UDim2.new(0.2, 0, 0, 0) -- เลื่อนไปทางขวาเพื่อเว้นที่ให้รูปภาพ
 titleLabel.BackgroundColor3 = Color3.new(0.2, 0.15, 0.15)
 titleLabel.TextColor3 = Color3.new(1, 1, 1)
-titleLabel.Text = "💀 Anti-AFK Hub" -- เพิ่มไอคอนหัวกะโหลก
+titleLabel.Text = "Anti-AFK Hub"
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.TextSize = 18
-titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = headerFrame
 
 -- Subtitle/Credit Label
 local creditLabel = Instance.new("TextLabel")
-creditLabel.Size = UDim2.new(1, 0, 0.5, 0)
-creditLabel.Position = UDim2.new(0, 0, 0.5, 0)
+creditLabel.Size = UDim2.new(0.3, 0, 1, 0)
+creditLabel.Position = UDim2.new(0.7, 0, 0, 0) -- จัดให้อยู่ด้านขวา
 creditLabel.BackgroundColor3 = Color3.new(0.2, 0.15, 0.15)
 creditLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-creditLabel.Text = "Credit: Anuson GH"
+creditLabel.Text = "Manus AI"
 creditLabel.Font = Enum.Font.SourceSans
 creditLabel.TextSize = 14
-creditLabel.TextXAlignment = Enum.TextXAlignment.Center
+creditLabel.TextXAlignment = Enum.TextXAlignment.Right
 creditLabel.Parent = headerFrame
 
 -- Toggle Button (ส่วนควบคุม)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.8, 0, 0, 40)
-toggleButton.Position = UDim2.new(0.1, 0, 0.5, 0) -- จัดให้อยู่ด้านล่าง Header
-toggleButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2) -- สีแดง (ปิดอยู่)
+toggleButton.Position = UDim2.new(0.1, 0, 0.5, 0)
+toggleButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
 toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Text = "Status: OFF"
 toggleButton.Font = Enum.Font.SourceSansBold
