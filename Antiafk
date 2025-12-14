@@ -1,0 +1,129 @@
+--[[
+    Anti-AFK Script with "Anuson Hub" Style GUI for Roblox (Lua) - Version 4
+    
+    การปรับปรุง:
+    1. ออกแบบ GUI ใหม่ให้มีลักษณะคล้ายกับ "Xeter Hub" ในภาพตัวอย่าง (โทนสีเข้ม, ขอบมน)
+    2. ลบ Rainbow Border ออก และรวม Credit เข้าไปในส่วนหัว
+    3. คงฟังก์ชัน Anti-AFK และการใช้ CoreGui เพื่อป้องกัน GUI หายเมื่อตัวละครตาย
+]]
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local isAntiAFKEnabled = false
+local interval = 60 -- ระยะเวลาเป็นวินาทีระหว่างการกระทำ
+local lastActionTime = 0
+
+-- ฟังก์ชันสำหรับดำเนินการ Anti-AFK (จำลองการกระโดด)
+local function antiAFKAction()
+    if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        
+        Humanoid.Jump = true
+        task.wait(0.1)
+        Humanoid.Jump = false
+        
+        lastActionTime = tick()
+    end
+end
+
+-- ลูปหลักที่ทำงานในทุกเฟรม (Heartbeat) เพื่อตรวจสอบเวลา
+RunService.Heartbeat:Connect(function()
+    if isAntiAFKEnabled and (tick() - lastActionTime >= interval) then
+        antiAFKAction()
+    end
+end)
+
+-- **********************************************************************************
+-- ส่วนของการสร้าง GUI (Xeter Hub Style)
+-- **********************************************************************************
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AntiAFK_XeterStyle_GUI"
+screenGui.Parent = CoreGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Enabled = true
+
+-- Main Frame (กรอบหลัก)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 220, 0, 100)
+mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0) -- จัดให้อยู่ด้านบนค่อนไปทางกลาง
+mainFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15) -- โทนสีเข้ม
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- Rounded Corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8) -- ขอบมน
+corner.Parent = mainFrame
+
+-- Header Frame (ส่วนหัวคล้าย Xeter Hub)
+local headerFrame = Instance.new("Frame")
+headerFrame.Size = UDim2.new(1, 0, 0, 40)
+headerFrame.Position = UDim2.new(0, 0, 0, 0)
+headerFrame.BackgroundColor3 = Color3.new(0.2, 0.15, 0.15) -- สีเข้มกว่าเล็กน้อย
+headerFrame.BorderSizePixel = 0
+headerFrame.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 8)
+headerCorner.Parent = headerFrame
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0.5, 0)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundColor3 = Color3.new(0.2, 0.15, 0.15)
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.Text = "💀 Anti-AFK Hub" -- เพิ่มไอคอนหัวกะโหลก
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.TextSize = 18
+titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+titleLabel.Parent = headerFrame
+
+-- Subtitle/Credit Label
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Size = UDim2.new(1, 0, 0.5, 0)
+creditLabel.Position = UDim2.new(0, 0, 0.5, 0)
+creditLabel.BackgroundColor3 = Color3.new(0.2, 0.15, 0.15)
+creditLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+creditLabel.Text = "Credit: Anuson GH"
+creditLabel.Font = Enum.Font.SourceSans
+creditLabel.TextSize = 14
+creditLabel.TextXAlignment = Enum.TextXAlignment.Center
+creditLabel.Parent = headerFrame
+
+-- Toggle Button (ส่วนควบคุม)
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0.8, 0, 0, 40)
+toggleButton.Position = UDim2.new(0.1, 0, 0.5, 0) -- จัดให้อยู่ด้านล่าง Header
+toggleButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2) -- สีแดง (ปิดอยู่)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Text = "Status: OFF"
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 20
+toggleButton.Parent = mainFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 6)
+buttonCorner.Parent = toggleButton
+
+-- ฟังก์ชันสำหรับสลับสถานะ Anti-AFK
+local function toggleAntiAFK()
+    isAntiAFKEnabled = not isAntiAFKEnabled
+    if isAntiAFKEnabled then
+        toggleButton.Text = "Status: ON"
+        toggleButton.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2) -- สีเขียว (เปิดอยู่)
+        lastActionTime = tick() -- ตั้งเวลาเริ่มต้นใหม่เมื่อเปิดใช้งาน
+    else
+        toggleButton.Text = "Status: OFF"
+        toggleButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2) -- สีแดง (ปิดอยู่)
+    end
+end
+
+-- เชื่อมต่อฟังก์ชันกับปุ่ม
+toggleButton.MouseButton1Click:Connect(toggleAntiAFK)
