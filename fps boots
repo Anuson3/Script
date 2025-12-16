@@ -82,7 +82,7 @@ openButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
 openButton.TextColor3 = Color3.fromRGB(255,255,255)
 openButton.Font = Enum.Font.GothamBold
 openButton.TextSize = 26
-openButton.Text = "⚡"
+openButton.Text = "🗿"
 openButton.Parent = screenGui
 openButton.Draggable = true
 
@@ -134,7 +134,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,30)
 title.Position = UDim2.new(0,0,0,0)
 title.BackgroundTransparency = 1
-title.Text = "🗿 FPS Boost+"
+title.Text = "🗿 FPS Boost+,kate Gay"
 title.TextColor3 = Color3.fromRGB(255,255,255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
