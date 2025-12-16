@@ -1,116 +1,351 @@
+--[[  
+FPS Boost+  
+ttk: breaksstore
+]]--
+
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
 
---// สร้าง GUI เครดิตแบบเต็มหน้าจอ
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FPSBoosterCreditGUI"
-ScreenGui.Parent = game.CoreGui
+print("FPSBoost+ LocalScript iniciado")
 
-local Frame = Instance.new("Frame")
-Frame.Name = "CreditFrame"
-Frame.Size = UDim2.new(1, 0, 1, 0) -- เต็มหน้าจอ
-Frame.Position = UDim2.new(-1, 0, 0, 0) -- เริ่มต้นนอกจอทางซ้าย
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Frame.BackgroundTransparency = 0.1 -- โปร่งใสเล็กน้อย
-Frame.BorderSizePixel = 0
-Frame.Parent = ScreenGui
+--// โค้ด GUI เครดิตแบบมี Tween เลื่อนเข้า-กลาง-ออก (ปรับปรุงใหม่)
+local CreditScreenGui = Instance.new("ScreenGui")
+CreditScreenGui.Name = "FPSBoosterCreditGUI"
+CreditScreenGui.Parent = game.CoreGui -- ใช้ CoreGui เพื่อให้แสดงผลก่อน PlayerGui
 
-local TextLabel = Instance.new("TextLabel")
-TextLabel.Name = "CreditText"
-TextLabel.Text = "FPS Booster Activated\nby anuson" -- ข้อความเครดิต
-TextLabel.Size = UDim2.new(1, 0, 1, 0)
-TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel.TextStrokeTransparency = 0.5
-TextLabel.BackgroundTransparency = 1
-TextLabel.TextScaled = true
-TextLabel.Font = Enum.Font.GothamBold
-TextLabel.Parent = Frame
+local CreditFrame = Instance.new("Frame")
+CreditFrame.Name = "CreditFrame"
+CreditFrame.Size = UDim2.new(0, 400, 0, 150) -- ขนาดเฟรมเครดิต
+CreditFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+CreditFrame.BackgroundTransparency = 0.1
+CreditFrame.BorderSizePixel = 0
+CreditFrame.Parent = CreditScreenGui
 
---// เอฟเฟกต์หน้าต่างเลื่อนเข้าและออก
+local CreditTextLabel = Instance.new("TextLabel")
+CreditTextLabel.Name = "CreditText"
+CreditTextLabel.Text = "FPS Boost+ Activated\nby ttk: breaksstore" -- ข้อความเครดิต
+CreditTextLabel.Size = UDim2.new(1, 0, 1, 0)
+CreditTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CreditTextLabel.TextStrokeTransparency = 0.5
+CreditTextLabel.BackgroundTransparency = 1
+CreditTextLabel.TextScaled = true
+CreditTextLabel.Font = Enum.Font.GothamBold
+CreditTextLabel.Parent = CreditFrame
+
+--// เอฟเฟกต์หน้าต่างเลื่อนเข้า-กลาง-ออก
 task.spawn(function()
+    -- ตำแหน่ง
+    local centerPos = UDim2.new(0.5, -200, 0.5, -75) -- ตำแหน่งกลางจอ (0.5, -halfWidth, 0.5, -halfHeight)
+    local startPos = UDim2.new(0, -400, 0.5, -75) -- ตำแหน่งเริ่มต้นนอกจอทางซ้าย
+    local endPos = UDim2.new(1, 0, 0.5, -75) -- ตำแหน่งสุดท้ายนอกจอทางขวา
+
+    CreditFrame.Position = startPos -- กำหนดตำแหน่งเริ่มต้น
+
     -- การตั้งค่า Tween
-    local slideInInfo = TweenInfo.new(
-        0.5, -- เวลา
+    local slideInfo = TweenInfo.new(
+        1, -- เวลา 1 วินาที เพื่อให้ดู "ค่อยๆ" เลื่อน
         Enum.EasingStyle.Quad, -- สไตล์การเคลื่อนไหว
         Enum.EasingDirection.Out -- ทิศทางการเคลื่อนไหว
     )
-    local slideOutInfo = TweenInfo.new(
-        0.5, -- เวลา
-        Enum.EasingStyle.Quad, -- สไตล์การเคลื่อนไหว
-        Enum.EasingDirection.In -- ทิศทางการเคลื่อนไหว
-    )
 
-    local slideInGoal = {Position = UDim2.new(0, 0, 0, 0)} -- ตำแหน่งเต็มหน้าจอ
-    local slideOutGoal = {Position = UDim2.new(1, 0, 0, 0)} -- ตำแหน่งนอกจอทางขวา
-
-    -- เลื่อนเข้า
-    local slideInTween = TweenService:Create(Frame, slideInInfo, slideInGoal)
+    -- 1. เลื่อนเข้าสู่กลางจอ
+    local slideInTween = TweenService:Create(CreditFrame, slideInfo, {Position = centerPos})
     slideInTween:Play()
     slideInTween.Completed:Wait()
 
-    -- รอ
+    -- 2. รอ 2 วินาที
     task.wait(2)
 
-    -- เลื่อนออก
-    local slideOutTween = TweenService:Create(Frame, slideOutInfo, slideOutGoal)
+    -- 3. เลื่อนออกไปทางขวา
+    local slideOutTween = TweenService:Create(CreditFrame, slideInfo, {Position = endPos})
     slideOutTween:Play()
     slideOutTween.Completed:Wait()
 
     -- ทำลาย GUI
-    ScreenGui:Destroy()
+    CreditScreenGui:Destroy()
+end)
+--// สิ้นสุดโค้ด GUI เครดิต
+
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FPSBoostPlus"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- BOTÃO ABRIR GUI
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0,60,0,60)
+openButton.Position = UDim2.new(0,20,0.5,-30)
+openButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
+openButton.TextColor3 = Color3.fromRGB(255,255,255)
+openButton.Font = Enum.Font.GothamBold
+openButton.TextSize = 26
+openButton.Text = "⚡"
+openButton.Parent = screenGui
+openButton.Draggable = true
+
+local circleCorner = Instance.new("UICorner")
+circleCorner.CornerRadius = UDim.new(1,0)
+circleCorner.Parent = openButton
+
+local shadow = Instance.new("UIStroke")
+shadow.Color = Color3.fromRGB(255,255,255)
+shadow.Thickness = 1
+shadow.Transparency = 0.6
+shadow.Parent = openButton
+
+openButton.MouseEnter:Connect(function()
+    openButton.BackgroundColor3 = Color3.fromRGB(70,70,70)
+end)
+openButton.MouseLeave:Connect(function()
+    openButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
 end)
 
---------------------------------------------------------------------
---                       FPS BOOSTER SAFE VERSION                 --
---------------------------------------------------------------------
+-- MAIN FRAME
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0,280,0,320)
+mainFrame.Position = UDim2.new(0.5,-140,0.5,-160)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+mainFrame.BackgroundTransparency = 0.3
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+mainFrame.Draggable = true
+mainFrame.Active = true
 
-local Lighting = game:GetService("Lighting")
-local Terrain = workspace:FindFirstChildOfClass("Terrain")
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0,20)
+frameCorner.Parent = mainFrame
 
--- ปิดแสง/เงา/เอฟเฟกต์หนัก ๆ
-pcall(function()
-    Lighting.GlobalShadows = false
-    Lighting.Brightness = 1
-    Lighting.FogEnd = 100000
-    Lighting.FogStart = 0
-end)
+local border = Instance.new("Frame")
+border.Size = UDim2.new(1, -4, 1, -4)
+border.Position = UDim2.new(0,2,0,2)
+border.BackgroundColor3 = Color3.fromRGB(0,0,0)
+border.BackgroundTransparency = 0.3
+border.BorderSizePixel = 0
+border.Parent = mainFrame
+local borderCorner = Instance.new("UICorner")
+borderCorner.CornerRadius = UDim.new(0,18)
+borderCorner.Parent = border
 
--- ปิด Effects
-for _, v in pairs(Lighting:GetChildren()) do
-    if v:IsA("BlurEffect") or v:IsA("SunRaysEffect")
-    or v:IsA("BloomEffect") or v:IsA("ColorCorrectionEffect") then
-        v.Enabled = false
+-- Título
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,30)
+title.Position = UDim2.new(0,0,0,0)
+title.BackgroundTransparency = 1
+title.Text = "🗿 FPS Boost+"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.Parent = mainFrame
+
+-- Subtítulo
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1,0,0,20)
+subtitle.Position = UDim2.new(0,0,0,30)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "ttk: breaksstore"
+subtitle.TextColor3 = Color3.fromRGB(200,200,200)
+subtitle.Font = Enum.Font.GothamBold
+subtitle.TextSize = 14
+subtitle.Parent = mainFrame
+
+-- FUNÇÃO CRIAR BOTÕES
+local function createButton(text, yPos)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.8,0,0,40)
+    btn.Position = UDim2.new(0.1,0,0,yPos)
+    btn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    btn.BackgroundTransparency = 0.1
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 18
+    btn.Parent = mainFrame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,12)
+    corner.Parent = btn
+    local shadow = Instance.new("UIStroke")
+    shadow.Color = Color3.fromRGB(255,255,255)
+    shadow.Thickness = 1
+    shadow.Transparency = 0.6
+    shadow.Parent = btn
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundTransparency = 0
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundTransparency = 0.1
+    end)
+    return btn
+end
+
+-- BOTÕES
+local boostButton = createButton("Ativar FPS Boost",60)
+local disableButton = createButton("Desativar Boost",110)
+local stretchButton = createButton("Esticar Tela",160)
+local helpStealButton = createButton("Steal/TP",210)
+
+-- FPS BOOST
+local originalMaterials = {}
+for _, obj in ipairs(workspace:GetDescendants()) do
+    if obj:IsA("BasePart") and not obj:IsDescendantOf(Players) then
+        originalMaterials[obj] = {Material=obj.Material, Color=obj.Color, Reflectance=obj.Reflectance}
     end
 end
 
--- ลดสเปค Terrain
-pcall(function()
-    if Terrain then
-        Terrain.WaterRefraction = 0
-        Terrain.WaterWaveSize = 0
-        Terrain.WaterWaveSpeed = 0
-        Terrain.WaterTransparency = 1
-    end
-end)
-
--- ลดคุณภาพโมเดลทั้งหมด
-local function boost(folder)
-    for _, obj in pairs(folder:GetDescendants()) do
-        if obj:IsA("Part") or obj:IsA("MeshPart") or obj:IsA("UnionOperation") then
-            obj.Material = Enum.Material.Plastic
+local function fpsBoost()
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and not obj:IsDescendantOf(Players) then
+            obj.Material = Enum.Material.SmoothPlastic
             obj.Reflectance = 0
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            obj.Transparency = 1
-        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
-            obj.Enabled = false
-        elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") 
+            or obj:IsA("Fire") or obj:IsA("Sparkles") then
             obj.Enabled = false
         end
     end
+    local lighting = game:GetService("Lighting")
+    lighting.GlobalShadows = false
+    lighting.FogEnd = 9e9
+    lighting.Brightness = 1.5
+    lighting.OutdoorAmbient = Color3.fromRGB(140,140,140)
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
 end
 
-boost(workspace)
+local function disableFpsBoost()
+    for obj,data in pairs(originalMaterials) do
+        if obj and obj:IsA("BasePart") then
+            obj.Material = data.Material
+            obj.Color = data.Color
+            obj.Reflectance = data.Reflectance
+        end
+    end
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") 
+            or obj:IsA("Fire") or obj:IsA("Sparkles") then
+            obj.Enabled = true
+        end
+    end
+    local lighting = game:GetService("Lighting")
+    lighting.GlobalShadows = true
+    lighting.FogEnd = 1000
+    lighting.Brightness = 2
+    lighting.OutdoorAmbient = Color3.fromRGB(128,128,128)
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level21
+end
 
--- ตั้งค่า Quality ต่ำสุดเพื่อ FPS สูง
-settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+-- ESTICAR TELA
+local stretched = false
+local stretchConnection
+local function toggleStretch()
+    local Camera = workspace.CurrentCamera
+    if not stretched then
+        stretchConnection = RunService.RenderStepped:Connect(function()
+            Camera.CFrame = Camera.CFrame * CFrame.new(
+                0,0,0,
+                1,0,0,
+                0,0.65,0,
+                0,0,1
+            )
+        end)
+        stretched = true
+        stretchButton.Text = "✅ Tela Esticada"
+        stretchButton.BackgroundColor3 = Color3.fromRGB(40,120,180)
+    else
+        if stretchConnection then
+            stretchConnection:Disconnect()
+            stretchConnection = nil
+        end
+        stretched = false
+        stretchButton.Text = "Esticar Tela"
+        stretchButton.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    end
+end
 
-print("FPS Booster Loaded with Full-Screen Credit GUI — by anuson")
+-- HELP / TP INTERFACE
+local helpInterface = Instance.new("Frame")
+helpInterface.Size = UDim2.new(0,200,0,150)
+helpInterface.Position = UDim2.new(1,-210,0,10)
+helpInterface.BackgroundColor3 = Color3.fromRGB(25,25,25)
+helpInterface.BackgroundTransparency = 0.2
+helpInterface.Visible = false
+helpInterface.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0,12)
+corner.Parent = helpInterface
+
+local helpTitle = Instance.new("TextLabel")
+helpTitle.Size = UDim2.new(1,0,0,30)
+helpTitle.BackgroundTransparency = 1
+helpTitle.Text = "Steal/TP"
+helpTitle.TextColor3 = Color3.fromRGB(255,255,255)
+helpTitle.Font = Enum.Font.GothamBold
+helpTitle.TextSize = 18
+helpTitle.Parent = helpInterface
+
+-- BOTÕES TP
+local saveTpBtn = Instance.new("TextButton")
+saveTpBtn.Size = UDim2.new(0.8,0,0,30)
+saveTpBtn.Position = UDim2.new(0.1,0,0,50)
+saveTpBtn.Text = "Salvar TP"
+saveTpBtn.TextColor3 = Color3.fromRGB(255,255,255)
+saveTpBtn.Font = Enum.Font.GothamBold
+saveTpBtn.TextSize = 16
+saveTpBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+saveTpBtn.Parent = helpInterface
+local saveTpCorner = Instance.new("UICorner")
+saveTpCorner.CornerRadius = UDim.new(0,10)
+saveTpCorner.Parent = saveTpBtn
+
+local goTpBtn = Instance.new("TextButton")
+goTpBtn.Size = UDim2.new(0.8,0,0,30)
+goTpBtn.Position = UDim2.new(0.1,0,0,100)
+goTpBtn.Text = "Ir para TP"
+goTpBtn.TextColor3 = Color3.fromRGB(255,255,255)
+goTpBtn.Font = Enum.Font.GothamBold
+goTpBtn.TextSize = 16
+goTpBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+goTpBtn.Parent = helpInterface
+local goTpCorner = Instance.new("UICorner")
+goTpCorner.CornerRadius = UDim.new(0,10)
+goTpCorner.Parent = goTpBtn
+
+-- TELEGUIADO SEGURO
+local savedCFrame
+
+saveTpBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        savedCFrame = char.HumanoidRootPart.CFrame
+    end
+end)
+
+goTpBtn.MouseButton1Click:Connect(function()
+    if not savedCFrame then return end
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+    if hrp and humanoid then
+        humanoid.PlatformStand = true
+        local tween = TweenService:Create(hrp, TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {CFrame = savedCFrame})
+        tween:Play()
+        tween.Completed:Wait()
+        humanoid.PlatformStand = false
+    end
+end)
+
+-- ABRIR/FECHAR GUI
+local open = false
+openButton.MouseButton1Click:Connect(function()
+    open = not open
+    mainFrame.Visible = open
+end)
+
+-- BOTÕES PRINCIPAIS
+boostButton.MouseButton1Click:Connect(fpsBoost)
+disableButton.MouseButton1Click:Connect(disableFpsBoost)
+stretchButton.MouseButton1Click:Connect(toggleStretch)
+helpStealButton.MouseButton1Click:Connect(function()
+    helpInterface.Visible = not helpInterface.Visible
+end)
