@@ -152,7 +152,7 @@ local function HandleCamlockCallback(response)
 
         StarterGui:SetCore("SendNotification", {
             Title = "Made by Anuson",
-            Text = "Kate Gay🖕",
+            Text = "Kate Durationationพ่อมึงตาย",
             Duration = 2.6
         })
     end
@@ -163,7 +163,7 @@ CamlockBindable.OnInvoke = HandleCamlockCallback
 
 StarterGui:SetCore("SendNotification", {
     Title = "Gay",
-    Text = "ควยพ่อมึงตาย",
+    Text = "ezzzzzz",
     Duration = 85,
     Button1 = "Yes",
     Button2 = "No",
