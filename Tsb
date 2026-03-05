@@ -162,11 +162,11 @@ local CamlockBindable = Instance.new("BindableFunction")
 CamlockBindable.OnInvoke = HandleCamlockCallback
 
 StarterGui:SetCore("SendNotification", {
-    Title = "Gay",
-    Text = "ezzzzzz",
+    Title = "สวัสดีกู Anuson",
+    Text = "ต้องการเปิดใช้งานล็อคเป้าหมายไหม",
     Duration = 85,
-    Button1 = "Yes",
-    Button2 = "No",
+    Button1 = "ใช่",
+    Button2 = "ไม่",
     Callback = CamlockBindable
 })
 
@@ -187,12 +187,12 @@ UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
 TitleLabel.Name = "Title"
-TitleLabel.Parent = MainFrame
+TitleLabel.Parent = หน้าหลัก
 TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 TitleLabel.BorderSizePixel = 0
 TitleLabel.Size = UDim2.new(1, 0, 0, 35)
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "TSB | Combat Gui"
+TitleLabel.Text = "TSB | Hackscript by Anuson"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 17
 UICorner:Clone().Parent = TitleLabel
@@ -211,7 +211,7 @@ UICorner:Clone().Parent = OpenCloseButton
 
 AutoBlockLabel.Name = "text"
 AutoBlockLabel.Parent = MainFrame
-AutoBlockLabel.Text = "Auto Block"
+AutoBlockLabel.Text = "บล็อกอัตโนมัติ"
 AutoBlockLabel.TextSize = 18
 AutoBlockLabel.Position = UDim2.new(0.5, 0, 0.6, -40)
 AutoBlockLabel.TextColor3 = Color3.fromRGB(80, 80, 80)
