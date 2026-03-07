@@ -1,0 +1,898 @@
+_G.CloseRange = 14
+_G.LongRange = 25
+_G.NotifierRange = 20
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local TweenService = game:GetService("TweenService")
+local TextChatService = game:GetService("TextChatService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local OpenCloseButton = Instance.new("TextButton")
+local AutoBlockButton = Instance.new("TextButton")
+local CounterNotifierButton = Instance.new("TextButton")
+local UnusedButton = Instance.new("TextButton")
+local SettingsButton = Instance.new("ImageButton")
+local SettingsFrame = Instance.new("Frame")
+local CloseRangeTextBox = Instance.new("TextBox")
+local LongRangeTextBox = Instance.new("TextBox")
+local NotifierRangeTextBox = Instance.new("TextBox")
+local UICorner = Instance.new("UICorner")
+local AutoBlockLabel = Instance.new("TextLabel")
+local CounterNotifierLabel = Instance.new("TextLabel")
+local DefaultSettingsButton = Instance.new("TextButton")
+
+task.wait(0.9)
+
+StarterGui:SetCore("SendNotification", {
+    Title = "หมายเหตุ",
+    Text = "อย่าลืมตั้งค่าสคริปต์ก่อนใช้งาน (หรือใช้การตั้งค่าเริ่มต้น)",
+    Duration = 3
+})
+
+local CamlockEnabled = false
+local CamlockPrediction = 0.16
+local CamlockToggle = true
+local CamlockTarget = nil
+local CamlockKey = "c"
+
+getgenv().Key = CamlockKey
+
+local function FindNearestEnemy()
+    local closestDistance = math.huge
+    local screenCenter = Vector2.new(
+        game:GetService("GuiService"):GetScreenResolution().X / 2,
+        game:GetService("GuiService"):GetScreenResolution().Y / 2
+    )
+    local nearestTarget = nil
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local character = player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") and character.Humanoid.Health > 0 then
+                local screenPosition, onScreen = workspace.CurrentCamera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+                if onScreen then
+                    local distance = (screenCenter - Vector2.new(screenPosition.X, screenPosition.Y)).Magnitude
+                    if distance < closestDistance then
+                        nearestTarget = character.HumanoidRootPart
+                        closestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+
+    local liveFolder = workspace:FindFirstChild("Live")
+    if liveFolder then
+        local dummy = liveFolder:FindFirstChild("Weakest Dummy")
+        if dummy and dummy:FindFirstChild("HumanoidRootPart") then
+            local screenPosition, onScreen = workspace.CurrentCamera:WorldToViewportPoint(dummy.HumanoidRootPart.Position)
+            if onScreen and (screenCenter - Vector2.new(screenPosition.X, screenPosition.Y)).Magnitude < closestDistance then
+                nearestTarget = dummy.HumanoidRootPart
+            end
+        end
+    end
+
+    return nearestTarget
+end
+
+local function HandleCamlockCallback(response)
+    if response == "ใช่" then
+        RunService.Heartbeat:Connect(function()
+            if CamlockEnabled and CamlockTarget then
+                local camera = workspace.CurrentCamera
+                camera.CFrame = CFrame.new(camera.CFrame.Position, CamlockTarget.Position + CamlockTarget.Velocity * CamlockPrediction)
+            end
+        end)
+
+        Mouse.KeyDown:Connect(function(key)
+            if key == getgenv().Key then
+                CamlockToggle = not CamlockToggle
+                if CamlockToggle then
+                    CamlockTarget = FindNearestEnemy()
+                    CamlockEnabled = true
+                elseif CamlockTarget ~= nil then
+                    CamlockTarget = nil
+                    CamlockEnabled = false
+                end
+            end
+        end)
+
+        local CamlockGui = Instance.new("ScreenGui")
+        CamlockGui.Name = "RandomParentName"
+        CamlockGui.Parent = game.CoreGui
+
+        local CamlockFrame = Instance.new("Frame")
+        local CamlockCorner = Instance.new("UICorner")
+        local CamlockButton = Instance.new("TextButton")
+
+        CamlockFrame.Parent = CamlockGui
+        CamlockFrame.BackgroundColor3 = Color3.fromRGB(43, 43, 43)
+        CamlockFrame.BorderSizePixel = 0
+        CamlockFrame.Position = UDim2.new(0.133798108, 0, 0.20107238, 0)
+        CamlockFrame.Size = UDim2.new(0, 132, 0, 60)
+        CamlockFrame.Active = true
+        CamlockFrame.Draggable = true
+
+        local function CenterCamlockFrame()
+            CamlockFrame.Position = UDim2.new(0.63, -CamlockFrame.AbsoluteSize.X / 2, 0.2, -CamlockFrame.AbsoluteSize.Y / 2)
+        end
+        CenterCamlockFrame()
+        CamlockFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(CenterCamlockFrame)
+
+        CamlockCorner.Parent = CamlockFrame
+
+        CamlockButton.Parent = CamlockFrame
+        CamlockButton.BackgroundColor3 = Color3.fromRGB(43, 43, 43)
+        CamlockButton.BackgroundTransparency = 5
+        CamlockButton.BorderSizePixel = 0
+        CamlockButton.Position = UDim2.new(0.13, 0, 0.21971429, 0)
+        CamlockButton.Size = UDim2.new(0, 100, 0, 32)
+        CamlockButton.Font = Enum.Font.GothamBold
+        CamlockButton.Text = "กดเพื่อเปิดใช้งาน Camlock"
+        CamlockButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        CamlockButton.TextScaled = true
+        CamlockButton.TextWrapped = true
+
+        local CamlockState = true
+        CamlockButton.MouseButton1Click:Connect(function()
+            CamlockState = not CamlockState
+            if CamlockState then
+                CamlockButton.Text = "Camlock ปิดใช้งาน"
+                CamlockEnabled = false
+                CamlockTarget = nil
+            else
+                CamlockButton.Text = "Camlock เปิดใช้งาน"
+                CamlockEnabled = true
+                CamlockTarget = FindNearestEnemy()
+            end
+        end)
+
+        StarterGui:SetCore("SendNotification", {
+            Title = "สร้างโดย notpaki",
+            Text = "ขอบคุณที่ใช้ Combat Gui",
+            Duration = 2.6
+        })
+    end
+end
+
+local CamlockBindable = Instance.new("BindableFunction")
+CamlockBindable.OnInvoke = HandleCamlockCallback
+
+StarterGui:SetCore("SendNotification", {
+    Title = "สวัสดี",
+    Text = "คุณต้องการเรียกใช้สคริปต์ Camlock หรือไม่?",
+    Duration = 85,
+    Button1 = "ใช่",
+    Button2 = "ไม่",
+    Callback = CamlockBindable
+})
+
+ScreenGui.Name = "AutoBlock"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0, 15, 0, 100)
+MainFrame.Size = UDim2.new(0, 250, 0, 140)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TitleLabel.BorderSizePixel = 0
+TitleLabel.Size = UDim2.new(1, 0, 0, 35)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "TSB | Combat Gui"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 17
+UICorner:Clone().Parent = TitleLabel
+
+OpenCloseButton.Name = "OpenCloseButton"
+OpenCloseButton.Parent = TitleLabel
+OpenCloseButton.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+OpenCloseButton.BorderSizePixel = 0
+OpenCloseButton.Position = UDim2.new(1, -31.5, 0.005, 0)
+OpenCloseButton.Size = UDim2.new(0, 30.6, 0.955, 0)
+OpenCloseButton.Font = Enum.Font.GothamBold
+OpenCloseButton.Text = "-"
+OpenCloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenCloseButton.TextSize = 19
+UICorner:Clone().Parent = OpenCloseButton
+
+AutoBlockLabel.Name = "text"
+AutoBlockLabel.Parent = MainFrame
+AutoBlockLabel.Text = "บล็อกอัตโนมัติ"
+AutoBlockLabel.TextSize = 18
+AutoBlockLabel.Position = UDim2.new(0.5, 0, 0.6, -40)
+AutoBlockLabel.TextColor3 = Color3.fromRGB(80, 80, 80)
+AutoBlockLabel.Font = Enum.Font.Gotham
+
+CounterNotifierLabel.Name = "text2"
+CounterNotifierLabel.Parent = MainFrame
+CounterNotifierLabel.Text = "ตัวแจ้งเตือนการสวนกลับ"
+CounterNotifierLabel.TextSize = 18
+CounterNotifierLabel.Position = UDim2.new(0.5, 0, 0.6, 10)
+CounterNotifierLabel.TextColor3 = Color3.fromRGB(80, 80, 80)
+CounterNotifierLabel.Font = Enum.Font.Gotham
+
+AutoBlockButton.Name = "EnableButton"
+AutoBlockButton.Parent = MainFrame
+AutoBlockButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+AutoBlockButton.BorderSizePixel = 0
+AutoBlockButton.Position = UDim2.new(0.14, 0, 0.6, -30)
+AutoBlockButton.Size = UDim2.new(0.7, 0, 0, 33)
+AutoBlockButton.Font = Enum.Font.GothamBold
+AutoBlockButton.Text = "กดเพื่อเปิดใช้งานบล็อกอัตโนมัติ"
+AutoBlockButton.TextColor3 = Color3.fromRGB(250, 250, 250)
+AutoBlockButton.TextScaled = true
+UICorner:Clone().Parent = AutoBlockButton
+
+CounterNotifierButton.Name = "EnableButton2"
+CounterNotifierButton.Parent = MainFrame
+CounterNotifierButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+CounterNotifierButton.BorderSizePixel = 0
+CounterNotifierButton.Position = UDim2.new(0.14, 0, 0.6, 20)
+CounterNotifierButton.Size = UDim2.new(0.7, 0, 0, 33)
+CounterNotifierButton.Font = Enum.Font.GothamBold
+CounterNotifierButton.Text = "กดเพื่อเปิดใช้งานตัวแจ้งเตือนการสวนกลับ"
+CounterNotifierButton.TextColor3 = Color3.fromRGB(250, 250, 250)
+CounterNotifierButton.TextScaled = true
+UICorner:Clone().Parent = CounterNotifierButton
+
+SettingsButton.Name = "SettingsButton"
+SettingsButton.Parent = MainFrame
+SettingsButton.BackgroundTransparency = 1
+SettingsButton.Position = UDim2.new(1, -25, 0.8, 0)
+SettingsButton.Size = UDim2.new(0, 21, 0, 21)
+SettingsButton.Image = "rbxassetid://10734950309"
+
+SettingsFrame.Name = "SettingsFrame"
+SettingsFrame.Parent = MainFrame
+SettingsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+SettingsFrame.BorderSizePixel = 0
+SettingsFrame.Position = UDim2.new(1, 5, 0, 126)
+SettingsFrame.Size = UDim2.new(0, 0, 0, 0)
+SettingsFrame.Visible = false
+UICorner:Clone().Parent = SettingsFrame
+
+local MainFeaturesButton = Instance.new("ImageButton")
+MainFeaturesButton.Name = "NewButton"
+MainFeaturesButton.Parent = MainFrame
+MainFeaturesButton.BackgroundTransparency = 1
+MainFeaturesButton.Position = UDim2.new(1, -52, 0.8, 0)
+MainFeaturesButton.Size = UDim2.new(0, 21, 0, 21)
+MainFeaturesButton.Image = "rbxassetid://10734885829"
+
+local OtherFeaturesButton = Instance.new("ImageButton")
+OtherFeaturesButton.Name = "NewButton2"
+OtherFeaturesButton.Parent = MainFrame
+OtherFeaturesButton.BackgroundTransparency = 1
+OtherFeaturesButton.Position = UDim2.new(1, -78, 0.8, 0)
+OtherFeaturesButton.Size = UDim2.new(0, 21, 0, 21)
+OtherFeaturesButton.Image = "rbxassetid://10734886004"
+
+local MainFeaturesFrame = Instance.new("Frame")
+MainFeaturesFrame.Name = "MainFeaturesFrame"
+MainFeaturesFrame.Parent = MainFrame
+MainFeaturesFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFeaturesFrame.BorderSizePixel = 0
+MainFeaturesFrame.Position = UDim2.new(1, 5, 0, 126)
+MainFeaturesFrame.Size = UDim2.new(0, 0, 0, 0)
+MainFeaturesFrame.Visible = false
+UICorner:Clone().Parent = MainFeaturesFrame
+
+local OtherFeaturesFrame = Instance.new("Frame")
+OtherFeaturesFrame.Name = "OtherFeaturesFrame"
+OtherFeaturesFrame.Parent = MainFrame
+OtherFeaturesFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+OtherFeaturesFrame.BorderSizePixel = 0
+OtherFeaturesFrame.Position = UDim2.new(1, 5, 0, 126)
+OtherFeaturesFrame.Size = UDim2.new(0, 0, 0, 0)
+OtherFeaturesFrame.Visible = false
+UICorner:Clone().Parent = OtherFeaturesFrame
+
+CloseRangeTextBox.Parent = SettingsFrame
+CloseRangeTextBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+CloseRangeTextBox.BorderSizePixel = 0
+CloseRangeTextBox.Position = UDim2.new(0.06, 0, 0.15, 0)
+CloseRangeTextBox.Size = UDim2.new(0.85, 0, 0, 25)
+CloseRangeTextBox.Font = Enum.Font.Gotham
+CloseRangeTextBox.Text = "ระยะใกล้: 14"
+CloseRangeTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseRangeTextBox.TextSize = 12
+UICorner:Clone().Parent = CloseRangeTextBox
+
+LongRangeTextBox.Parent = SettingsFrame
+LongRangeTextBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+LongRangeTextBox.BorderSizePixel = 0
+LongRangeTextBox.Position = UDim2.new(0.06, 0, 0.4, 0)
+LongRangeTextBox.Size = UDim2.new(0.85, 0, 0, 25)
+LongRangeTextBox.Font = Enum.Font.Gotham
+LongRangeTextBox.Text = "ระยะไกล: 25"
+LongRangeTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+LongRangeTextBox.TextSize = 12
+UICorner:Clone().Parent = LongRangeTextBox
+
+NotifierRangeTextBox.Parent = SettingsFrame
+NotifierRangeTextBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+NotifierRangeTextBox.BorderSizePixel = 0
+NotifierRangeTextBox.Position = UDim2.new(0.06, 0, 0.65, 0)
+NotifierRangeTextBox.Size = UDim2.new(0.85, 0, 0, 25)
+NotifierRangeTextBox.Font = Enum.Font.Gotham
+NotifierRangeTextBox.Text = "ระยะแจ้งเตือน: 20"
+NotifierRangeTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+NotifierRangeTextBox.TextSize = 12
+UICorner:Clone().Parent = NotifierRangeTextBox
+
+DefaultSettingsButton.Parent = SettingsFrame
+DefaultSettingsButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+DefaultSettingsButton.BorderSizePixel = 0
+DefaultSettingsButton.Position = UDim2.new(0.06, 0, 0.9, 0)
+DefaultSettingsButton.Size = UDim2.new(0.85, 0, 0, 25)
+DefaultSettingsButton.Font = Enum.Font.Gotham
+DefaultSettingsButton.Text = "รีเซ็ตเป็นการตั้งค่าเริ่มต้น"
+DefaultSettingsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DefaultSettingsButton.TextSize = 12
+UICorner:Clone().Parent = DefaultSettingsButton
+
+local AutoParryToggle = Instance.new("TextButton")
+AutoParryToggle.Parent = MainFeaturesFrame
+AutoParryToggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+AutoParryToggle.BorderSizePixel = 0
+AutoParryToggle.Position = UDim2.new(0.04, 0, 0.45, 0)
+AutoParryToggle.Size = UDim2.new(0.075, 0, 0, 23)
+AutoParryToggle.Text = ""
+UICorner:Clone().Parent = AutoParryToggle
+
+local AutoParryLabel = Instance.new("TextLabel")
+AutoParryLabel.Parent = MainFeaturesFrame
+AutoParryLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+AutoParryLabel.BorderSizePixel = 0
+AutoParryLabel.Position = UDim2.new(0.04, 0, 0.388, 0)
+AutoParryLabel.Size = UDim2.new(0.07, 0, 0, 1)
+AutoParryLabel.Font = Enum.Font.Gotham
+AutoParryLabel.Text = "ปัดป้องอัตโนมัติ"
+AutoParryLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoParryLabel.TextSize = 9
+
+local AntiHeavyToggle = Instance.new("TextButton")
+AntiHeavyToggle.Parent = MainFeaturesFrame
+AntiHeavyToggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+AntiHeavyToggle.BorderSizePixel = 0
+AntiHeavyToggle.Position = UDim2.new(0.23, 0, 0.45, 0)
+AntiHeavyToggle.Size = UDim2.new(0.075, 0, 0, 23)
+AntiHeavyToggle.Text = ""
+UICorner:Clone().Parent = AntiHeavyToggle
+
+local AntiHeavyLabel = Instance.new("TextLabel")
+AntiHeavyLabel.Parent = MainFeaturesFrame
+AntiHeavyLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+AntiHeavyLabel.BorderSizePixel = 0
+AntiHeavyLabel.Position = UDim2.new(0.23, 0, 0.388, 0)
+AntiHeavyLabel.Size = UDim2.new(0.07, 0, 0, 1)
+AntiHeavyLabel.Font = Enum.Font.Gotham
+AntiHeavyLabel.Text = "ป้องกันการโจมตีหนัก"
+AntiHeavyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiHeavyLabel.TextSize = 9
+
+local AutoCounterM1Label = Instance.new("TextLabel")
+AutoCounterM1Label.Parent = MainFeaturesFrame
+AutoCounterM1Label.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+AutoCounterM1Label.BorderSizePixel = 0
+AutoCounterM1Label.Position = UDim2.new(0.39, 0, 0.388, 0)
+AutoCounterM1Label.Size = UDim2.new(0.07, 0, 0, 1)
+AutoCounterM1Label.Font = Enum.Font.Gotham
+AutoCounterM1Label.Text = "สวนกลับ M1 อัตโนมัติ"
+AutoCounterM1Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoCounterM1Label.TextSize = 9
+
+local AutoCounterM1Toggle = Instance.new("TextButton")
+AutoCounterM1Toggle.Parent = MainFeaturesFrame
+AutoCounterM1Toggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+AutoCounterM1Toggle.BorderSizePixel = 0
+AutoCounterM1Toggle.Position = UDim2.new(0.4, 0, 0.45, 0)
+AutoCounterM1Toggle.Size = UDim2.new(0.075, 0, 0, 23)
+AutoCounterM1Toggle.Text = ""
+UICorner:Clone().Parent = AutoCounterM1Toggle
+
+local M1ReachToggle = Instance.new("TextButton")
+M1ReachToggle.Parent = MainFeaturesFrame
+M1ReachToggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+M1ReachToggle.BorderSizePixel = 0
+M1ReachToggle.Position = UDim2.new(0.64, 0, 0.45, 0)
+M1ReachToggle.Size = UDim2.new(0.075, 0, 0, 23)
+M1ReachToggle.Text = ""
+UICorner:Clone().Parent = M1ReachToggle
+
+local M1ReachLabel = Instance.new("TextLabel")
+M1ReachLabel.Parent = MainFeaturesFrame
+M1ReachLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+M1ReachLabel.BorderSizePixel = 0
+M1ReachLabel.Position = UDim2.new(0.64, 0, 0.388, 0)
+M1ReachLabel.Size = UDim2.new(0.07, 0, 0, 1)
+M1ReachLabel.Font = Enum.Font.Gotham
+M1ReachLabel.Text = "ระยะ M1"
+M1ReachLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+M1ReachLabel.TextSize = 9
+
+local M1ResetToggle = Instance.new("TextButton")
+M1ResetToggle.Parent = MainFeaturesFrame
+M1ResetToggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+M1ResetToggle.BorderSizePixel = 0
+M1ResetToggle.Position = UDim2.new(0.43, 0, 0.745, 0)
+M1ResetToggle.Size = UDim2.new(0.075, 0, 0, 23)
+M1ResetToggle.Text = ""
+UICorner:Clone().Parent = M1ResetToggle
+
+local M1ResetLabel = Instance.new("TextLabel")
+M1ResetLabel.Parent = MainFeaturesFrame
+M1ResetLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+M1ResetLabel.BorderSizePixel = 0
+M1ResetLabel.Position = UDim2.new(0.44, 0, 0.67, 0)
+M1ResetLabel.Size = UDim2.new(0.07, 0, 0, 1)
+M1ResetLabel.Font = Enum.Font.Gotham
+M1ResetLabel.Text = "รีเซ็ต M1 [Endlag]"
+M1ResetLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+M1ResetLabel.TextSize = 9
+
+local AntiDeathCounterToggle = Instance.new("TextButton")
+AntiDeathCounterToggle.Parent = MainFeaturesFrame
+AntiDeathCounterToggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+AntiDeathCounterToggle.BorderSizePixel = 0
+AntiDeathCounterToggle.Position = UDim2.new(0.732, 0, 0.745, 0)
+AntiDeathCounterToggle.Size = UDim2.new(0.075, 0, 0, 23)
+AntiDeathCounterToggle.Text = ""
+UICorner:Clone().Parent = AntiDeathCounterToggle
+
+local AntiDeathCounterLabel = Instance.new("TextLabel")
+AntiDeathCounterLabel.Parent = MainFeaturesFrame
+AntiDeathCounterLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+AntiDeathCounterLabel.BorderSizePixel = 0
+AntiDeathCounterLabel.Position = UDim2.new(0.75, 0, 0.67, 0)
+AntiDeathCounterLabel.Size = UDim2.new(0.07, 0, 0, 1)
+AntiDeathCounterLabel.Font = Enum.Font.Gotham
+AntiDeathCounterLabel.Text = "ป้องกันการตายจากการสวนกลับ"
+AntiDeathCounterLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiDeathCounterLabel.TextSize = 9
+
+local Divider = Instance.new("Frame")
+Divider.Parent = OtherFeaturesFrame
+Divider.Size = UDim2.new(0, 1, 0.7, 0)
+Divider.Position = UDim2.new(0.8, 0, 0.16, 0)
+Divider.BackgroundColor3 = Color3.fromRGB(250, 250, 250)
+Divider.BorderSizePixel = 0
+Divider.BackgroundTransparency = 0.6
+UICorner:Clone().Parent = Divider
+
+local TeleportButton = Instance.new("ImageButton")
+TeleportButton.Parent = OtherFeaturesFrame
+TeleportButton.BackgroundTransparency = 1
+TeleportButton.Position = UDim2.new(1, -43.1, 0.25, 0)
+TeleportButton.Size = UDim2.new(0, 27, 0, 27)
+TeleportButton.Image = "rbxassetid://10734886004"
+
+local MiscButton = Instance.new("ImageButton")
+MiscButton.Parent = OtherFeaturesFrame
+MiscButton.BackgroundTransparency = 1
+MiscButton.Position = UDim2.new(1, -43.1, 0.55, 0)
+MiscButton.Size = UDim2.new(0, 28, 0, 28)
+MiscButton.Image = "rbxassetid://10734950020"
+
+local TeleportCorner = Instance.new("UICorner")
+TeleportCorner.CornerRadius = UDim.new(0, 6)
+
+local MountainTeleport = Instance.new("TextButton")
+MountainTeleport.Parent = OtherFeaturesFrame
+MountainTeleport.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+MountainTeleport.BorderSizePixel = 0
+MountainTeleport.Position = UDim2.new(0.01, 0, 0.25, 0)
+MountainTeleport.Size = UDim2.new(0.2, 0, 0, 23)
+MountainTeleport.Text = "ภูเขา"
+MountainTeleport.TextColor3 = Color3.fromRGB(240, 240, 240)
+MountainTeleport.TextScaled = true
+TeleportCorner:Clone().Parent = MountainTeleport
+MountainTeleport.MouseButton1Click:Connect(function()
+    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-59, 653, -381)
+end)
+
+local DeathCounterTeleport = Instance.new("TextButton")
+DeathCounterTeleport.Parent = OtherFeaturesFrame
+DeathCounterTeleport.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+DeathCounterTeleport.BorderSizePixel = 0
+DeathCounterTeleport.Position = UDim2.new(0.31, 0, 0.25, 0)
+DeathCounterTeleport.Size = UDim2.new(0.2, 0, 0, 23)
+DeathCounterTeleport.Text = "จุดสวนกลับมรณะ"
+DeathCounterTeleport.TextColor3 = Color3.fromRGB(240, 240, 240)
+DeathCounterTeleport.TextScaled = true
+TeleportCorner:Clone().Parent = DeathCounterTeleport
+DeathCounterTeleport.MouseButton1Click:Connect(function()
+    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-66, 29, 20348)
+end)
+
+local AtomicTeleport = Instance.new("TextButton")
+AtomicTeleport.Parent = OtherFeaturesFrame
+AtomicTeleport.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+AtomicTeleport.BorderSizePixel = 0
+AtomicTeleport.Position = UDim2.new(0.59, 0, 0.25, 0)
+AtomicTeleport.Size = UDim2.new(0.2, 0, 0, 23)
+AtomicTeleport.Text = "อะตอม"
+AtomicTeleport.TextColor3 = Color3.fromRGB(240, 240, 240)
+AtomicTeleport.TextScaled = true
+TeleportCorner:Clone().Parent = AtomicTeleport
+AtomicTeleport.MouseButton1Click:Connect(function()
+    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1070, 133, 23006)
+end)
+
+local BaseplateTeleport = Instance.new("TextButton")
+BaseplateTeleport.Parent = OtherFeaturesFrame
+BaseplateTeleport.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+BaseplateTeleport.BorderSizePixel = 0
+BaseplateTeleport.Position = UDim2.new(0.01, 0, 0.52, 0)
+BaseplateTeleport.Size = UDim2.new(0.2, 0, 0, 23)
+BaseplateTeleport.Text = "แผ่นฐาน"
+BaseplateTeleport.TextColor3 = Color3.fromRGB(240, 240, 240)
+BaseplateTeleport.TextScaled = true
+TeleportCorner:Clone().Parent = BaseplateTeleport
+BaseplateTeleport.MouseButton1Click:Connect(function()
+    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(992, 20, 22952)
+end)
+
+local Baseplate2Teleport = Instance.new("TextButton")
+Baseplate2Teleport.Parent = OtherFeaturesFrame
+Baseplate2Teleport.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+Baseplate2Teleport.BorderSizePixel = 0
+Baseplate2Teleport.Position = UDim2.new(0.31, 0, 0.52, 0)
+Baseplate2Teleport.Size = UDim2.new(0.2, 0, 0, 23)
+Baseplate2Teleport.Text = "แผ่นฐาน 2"
+Baseplate2Teleport.TextColor3 = Color3.fromRGB(240, 240, 240)
+Baseplate2Teleport.TextScaled = true
+TeleportCorner:Clone().Parent = Baseplate2Teleport
+Baseplate2Teleport.MouseButton1Click:Connect(function()
+    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1065, 406, 22992)
+end)
+
+local MiddleMapTeleport = Instance.new("TextButton")
+MiddleMapTeleport.Parent = OtherFeaturesFrame
+MiddleMapTeleport.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+MiddleMapTeleport.BorderSizePixel = 0
+MiddleMapTeleport.Position = UDim2.new(0.59, 0, 0.52, 0)
+MiddleMapTeleport.Size = UDim2.new(0.2, 0, 0, 23)
+MiddleMapTeleport.Text = "กลางแผนที่"
+MiddleMapTeleport.TextColor3 = Color3.fromRGB(240, 240, 240)
+MiddleMapTeleport.TextScaled = true
+TeleportCorner:Clone().Parent = MiddleMapTeleport
+MiddleMapTeleport.MouseButton1Click:Connect(function()
+    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(149, 441, 26)
+end)
+
+local NoStunLabel = Instance.new("TextLabel")
+NoStunLabel.Name = "StunL"
+NoStunLabel.Parent = OtherFeaturesFrame
+NoStunLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+NoStunLabel.BorderSizePixel = 0
+NoStunLabel.Position = UDim2.new(0.06, 0, 0.16, 0)
+NoStunLabel.Size = UDim2.new(0.07, 0, 0, 1)
+NoStunLabel.Font = Enum.Font.Gotham
+NoStunLabel.Text = "ไม่สตั๊น"
+NoStunLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoStunLabel.TextSize = 10
+
+local NoStunToggle = Instance.new("TextButton")
+NoStunToggle.Name = "Stun"
+NoStunToggle.Parent = OtherFeaturesFrame
+NoStunToggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+NoStunToggle.BorderSizePixel = 0
+NoStunToggle.Position = UDim2.new(0.05, 0, 0.25, 0)
+NoStunToggle.Size = UDim2.new(0.075, 0, 0, 23)
+NoStunToggle.Text = ""
+UICorner:Clone().Parent = NoStunToggle
+
+local NoFatigueToggle = Instance.new("TextButton")
+NoFatigueToggle.Name = "Void"
+NoFatigueToggle.Parent = OtherFeaturesFrame
+NoFatigueToggle.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+NoFatigueToggle.BorderSizePixel = 0
+NoFatigueToggle.Position = UDim2.new(0.25, 0, 0.25, 0)
+NoFatigueToggle.Size = UDim2.new(0.075, 0, 0, 23)
+NoFatigueToggle.Text = ""
+UICorner:Clone().Parent = NoFatigueToggle
+
+local NoFatigueLabel = Instance.new("TextLabel")
+NoFatigueLabel.Parent = OtherFeaturesFrame
+NoFatigueLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+NoFatigueLabel.BorderSizePixel = 0
+NoFatigueLabel.Position = UDim2.new(0.25, 0, 0.16, 0)
+NoFatigueLabel.Size = UDim2.new(0.07, 0, 0, 1)
+NoFatigueLabel.Font = Enum.Font.Gotham
+NoFatigueLabel.Text = "ไม่เหนื่อย"
+NoFatigueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoFatigueLabel.TextSize = 10
+
+local VoidScriptButton = Instance.new("TextButton")
+VoidScriptButton.Parent = OtherFeaturesFrame
+VoidScriptButton.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+VoidScriptButton.BorderSizePixel = 0
+VoidScriptButton.Position = UDim2.new(0.4, 0, 0.25, 0)
+VoidScriptButton.Size = UDim2.new(0.2, 0, 0, 23)
+VoidScriptButton.Text = "สคริปต์ Void"
+VoidScriptButton.TextColor3 = Color3.fromRGB(240, 240, 240)
+VoidScriptButton.TextScaled = true
+TeleportCorner:Clone().Parent = VoidScriptButton
+VoidScriptButton.MouseButton1Click:Connect(function()
+    loadstring(game:HttpGet("https://pastefy.app/zV3ruT7F/raw"))()
+end)
+
+local CurrentOtherTab = nil
+Divider.Visible = true
+MountainTeleport.Visible = false
+DeathCounterTeleport.Visible = false
+AtomicTeleport.Visible = false
+BaseplateTeleport.Visible = false
+Baseplate2Teleport.Visible = false
+MiddleMapTeleport.Visible = false
+NoStunToggle.Visible = false
+NoFatigueToggle.Visible = false
+OtherFeaturesLabel.Visible = true
+NoFatigueLabel.Visible = false
+VoidScriptButton.Visible = false
+NoStunLabel.Visible = false
+OtherFeaturesLabel.Text = "คุณสมบัติอื่นๆ"
+
+TeleportButton.MouseButton1Click:Connect(function()
+    CurrentOtherTab = 1
+    MountainTeleport.Visible = true
+    DeathCounterTeleport.Visible = true
+    AtomicTeleport.Visible = true
+    BaseplateTeleport.Visible = true
+    Baseplate2Teleport.Visible = true
+    MiddleMapTeleport.Visible = true
+    Divider.Visible = false
+    NoStunToggle.Visible = false
+    NoFatigueToggle.Visible = false
+    NoFatigueLabel.Visible = false
+    VoidScriptButton.Visible = false
+    NoStunLabel.Visible = false
+    OtherFeaturesLabel.Text = "เทเลพอร์ต"
+end)
+
+MiscButton.MouseButton1Click:Connect(function()
+    CurrentOtherTab = 2
+    MountainTeleport.Visible = false
+    DeathCounterTeleport.Visible = false
+    AtomicTeleport.Visible = false
+    BaseplateTeleport.Visible = false
+    Baseplate2Teleport.Visible = false
+    MiddleMapTeleport.Visible = false
+    Divider.Visible = false
+    NoStunToggle.Visible = true
+    NoFatigueToggle.Visible = true
+    NoFatigueLabel.Visible = true
+    VoidScriptButton.Visible = true
+    NoStunLabel.Visible = true
+    OtherFeaturesLabel.Text = "เบ็ดเตล็ด"
+end)
+
+local function updateToggle(button, state)
+    if state then
+        button.BackgroundColor3 = Color3.fromRGB(123, 255, 112)
+    else
+        button.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+    end
+end
+
+local AutoParryState = false
+AutoParryToggle.MouseButton1Click:Connect(function()
+    AutoParryState = not AutoParryState
+    updateToggle(AutoParryToggle, AutoParryState)
+end)
+
+local AntiHeavyState = false
+AntiHeavyToggle.MouseButton1Click:Connect(function()
+    AntiHeavyState = not AntiHeavyState
+    updateToggle(AntiHeavyToggle, AntiHeavyState)
+end)
+
+local AutoCounterM1State = false
+AutoCounterM1Toggle.MouseButton1Click:Connect(function()
+    AutoCounterM1State = not AutoCounterM1State
+    updateToggle(AutoCounterM1Toggle, AutoCounterM1State)
+end)
+
+local M1ReachState = false
+M1ReachToggle.MouseButton1Click:Connect(function()
+    M1ReachState = not M1ReachState
+    updateToggle(M1ReachToggle, M1ReachState)
+end)
+
+local M1ResetState = false
+M1ResetToggle.MouseButton1Click:Connect(function()
+    M1ResetState = not M1ResetState
+    updateToggle(M1ResetToggle, M1ResetState)
+end)
+
+local AntiDeathCounterState = false
+AntiDeathCounterToggle.MouseButton1Click:Connect(function()
+    AntiDeathCounterState = not AntiDeathCounterState
+    updateToggle(AntiDeathCounterToggle, AntiDeathCounterState)
+end)
+
+local NoStunState = false
+NoStunToggle.MouseButton1Click:Connect(function()
+    NoStunState = not NoStunState
+    updateToggle(NoStunToggle, NoStunState)
+end)
+
+local NoFatigueState = false
+NoFatigueToggle.MouseButton1Click:Connect(function()
+    NoFatigueState = not NoFatigueState
+    updateToggle(NoFatigueToggle, NoFatigueState)
+end)
+
+local AutoBlockEnabled = false
+local CounterNotifierEnabled = false
+
+local function ToggleAutoBlock()
+    AutoBlockEnabled = not AutoBlockEnabled
+    if AutoBlockEnabled then
+        AutoBlockButton.Text = "ปิดใช้งานบล็อกอัตโนมัติ"
+        AutoBlockButton.BackgroundColor3 = Color3.fromRGB(85, 170, 127)
+    else
+        AutoBlockButton.Text = "เปิดใช้งานบล็อกอัตโนมัติ"
+        AutoBlockButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    end
+end
+
+local function ToggleCounterNotifier()
+    CounterNotifierEnabled = not CounterNotifierEnabled
+    if CounterNotifierEnabled then
+        CounterNotifierButton.Text = "ปิดใช้งานตัวแจ้งเตือนการสวนกลับ"
+        CounterNotifierButton.BackgroundColor3 = Color3.fromRGB(85, 170, 127)
+    else
+        CounterNotifierButton.Text = "เปิดใช้งานตัวแจ้งเตือนการสวนกลับ"
+        CounterNotifierButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    end
+end
+
+AutoBlockButton.MouseButton1Click:Connect(ToggleAutoBlock)
+CounterNotifierButton.MouseButton1Click:Connect(ToggleCounterNotifier)
+
+local isFrameOpen = true
+local function ToggleFrame()
+    isFrameOpen = not isFrameOpen
+    local targetSize = isFrameOpen and UDim2.new(0, 250, 0, 140) or UDim2.new(0, 250, 0, 0)
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(MainFrame, tweenInfo, {Size = targetSize})
+    tween:Play()
+    OpenCloseButton.Text = isFrameOpen and "-" or "+"
+end
+
+OpenCloseButton.MouseButton1Click:Connect(ToggleFrame)
+
+local isSettingsOpen = false
+local function ToggleSettings()
+    isSettingsOpen = not isSettingsOpen
+    SettingsFrame.Visible = true
+    MainFeaturesFrame.Visible = false
+    OtherFeaturesFrame.Visible = false
+    local targetSize = isSettingsOpen and UDim2.new(1, 0, 0, 120) or UDim2.new(1, 0, 0, 0)
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(SettingsFrame, tweenInfo, {Size = targetSize})
+    tween:Play()
+end
+
+SettingsButton.MouseButton1Click:Connect(ToggleSettings)
+
+local isMainFeaturesOpen = false
+local function ToggleMainFeatures()
+    isMainFeaturesOpen = not isMainFeaturesOpen
+    MainFeaturesFrame.Visible = true
+    SettingsFrame.Visible = false
+    OtherFeaturesFrame.Visible = false
+    local targetSize = isMainFeaturesOpen and UDim2.new(1, 0, 0, 120) or UDim2.new(1, 0, 0, 0)
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(MainFeaturesFrame, tweenInfo, {Size = targetSize})
+    tween:Play()
+end
+
+MainFeaturesButton.MouseButton1Click:Connect(ToggleMainFeatures)
+
+local isOtherFeaturesOpen = false
+local function ToggleOtherFeatures()
+    isOtherFeaturesOpen = not isOtherFeaturesOpen
+    OtherFeaturesFrame.Visible = true
+    SettingsFrame.Visible = false
+    MainFeaturesFrame.Visible = false
+    local targetSize = isOtherFeaturesOpen and UDim2.new(1, 0, 0, 120) or UDim2.new(1, 0, 0, 0)
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(OtherFeaturesFrame, tweenInfo, {Size = targetSize})
+    tween:Play()
+end)
+
+OtherFeaturesButton.MouseButton1Click:Connect(ToggleOtherFeatures)
+
+DefaultSettingsButton.MouseButton1Click:Connect(function()
+    _G.CloseRange = 14
+    _G.LongRange = 25
+    _G.NotifierRange = 20
+    CloseRangeTextBox.Text = "ระยะใกล้: " .. _G.CloseRange
+    LongRangeTextBox.Text = "ระยะไกล: " .. _G.LongRange
+    NotifierRangeTextBox.Text = "ระยะแจ้งเตือน: " .. _G.NotifierRange
+end)
+
+CloseRangeTextBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local text = CloseRangeTextBox.Text
+        local num = tonumber(text:match("%d+"))
+        if num then
+            _G.CloseRange = num
+        end
+    end
+end)
+
+LongRangeTextBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local text = LongRangeTextBox.Text
+        local num = tonumber(text:match("%d+"))
+        if num then
+            _G.LongRange = num
+        end
+    end
+end)
+
+NotifierRangeTextBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local text = NotifierRangeTextBox.Text
+        local num = tonumber(text:match("%d+"))
+        if num then
+            _G.NotifierRange = num
+        end
+    end
+end)
+
+-- Main logic loops
+RunService.Heartbeat:Connect(function()
+    if AutoBlockEnabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                local character = player.Character
+                if character and character:FindFirstChild("HumanoidRootPart") and character.Humanoid.Health > 0 then
+                    local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                    if distance <= _G.CloseRange then
+                        local remote = game:GetService("ReplicatedStorage").Remotes.FromClient.Block
+                        remote:FireServer()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if CounterNotifierEnabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                local character = player.Character
+                if character and character:FindFirstChild("HumanoidRootPart") and character.Humanoid.Health > 0 then
+                    local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                    if distance <= _G.NotifierRange and character.Humanoid:GetState() == Enum.HumanoidStateType.Running then
+                        -- Add notification logic here
+                    end
+                end
+            end
+        end
+    end
+end)
